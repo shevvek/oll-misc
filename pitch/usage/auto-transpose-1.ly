@@ -26,6 +26,15 @@ bach = \relative c'' { b a c h }
      (clefPosition . -2)
      (instrumentCueName . "Kl")
      (midiInstrument . "clarinet"))
+  
+\addInstrumentDefinition #"bass clarinet"
+  #`((instrumentTransposition . ,(ly:make-pitch -2 6 -1/2))
+     (shortInstrumentName . "Kl")
+     (clefGlyph . "clefs.G")
+     (middleCPosition . -6)
+     (clefPosition . -2)
+     (instrumentCueName . "Bass-Kl")
+     (midiInstrument . "bass clarinet"))
 
 %%% create demo score
 \score {
@@ -35,6 +44,8 @@ bach = \relative c'' { b a c h }
     \key f \major
     \bach
     \instrumentSwitch "b-clarinet"
+    \bach
+    \instrumentSwitch "bass clarinet"
     \bach
     \instrumentSwitch "eb-clarinet"
     \bach
