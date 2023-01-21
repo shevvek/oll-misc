@@ -1,4 +1,4 @@
-\version "2.19.15"
+\version "2.20.0"
 
 \include "deutsch.ly"
 
@@ -35,10 +35,8 @@ bach = \relative c'' { b a c h }
     \key f \major
     \bach
     \instrumentSwitch "b-clarinet"
-    \key f \major
     \bach
     \instrumentSwitch "eb-clarinet"
-    \key f \major
     \bach
   }
   \layout {}
