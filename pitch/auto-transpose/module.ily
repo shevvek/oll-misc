@@ -48,7 +48,8 @@
       (else #f))))
 
 #(define (cond-transp context music)
-   (let ((transp (ly:context-property context 'instrumentTransposition)))
+   (let ((transp (ly:context-property context 'instrumentTransposition))
+         (base (ly:make-pitch 0 0 0)))
      (define (do-transp m)
        (let ((ap (ly:music-property m 'auto-transpose))
              (tp (which-transp context transp))
