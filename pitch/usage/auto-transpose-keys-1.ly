@@ -16,7 +16,7 @@
     \transposition bf
     r4 c2. |
     % Key changes are transposed
-    \key c \major
+    \key a \major
     r4 c2. |
     % Key change immediately after a transposition change works correctly
     \transposition ef

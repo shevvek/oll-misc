@@ -35,6 +35,15 @@
 #(translator-property-description 'music-concert-pitch boolean? "music is in concert pitch")
 #(translator-property-description 'print-concert-pitch boolean? "print it in concert pitch")
 
+#(define (order-keysig context pitch-alist)
+   (let ((order (ly:context-property context 'keyAlterationOrder)))
+     (filter
+      (lambda (alt)
+        (any (lambda (el)
+               (equal? el alt))
+          pitch-alist))
+      order)))
+
 #(define (which-transp context transp)
    (let ((base (ly:make-pitch 0 0 0)) ; pitch c'
           (mcp (ly:context-property context 'music-concert-pitch)) ; music is in concert-pitch t/f
@@ -99,6 +108,8 @@ autoKeysigEngraver =
                      (ly:message "Transposition changed. Inserting key signature in measure ~A."
                        (ly:context-property context 'currentBarNumber))
                      (ly:event-set-property! key-event 'music-cause new-key)
+                     (ly:event-set-property! key-event 'pitch-alist 
+                       (order-keysig context (ly:event-property key-event 'pitch-alist)))
                      (ly:broadcast (ly:context-event-source context) key-event)
                      )))
              (set! lasttransp transp))))
@@ -128,11 +139,11 @@ autoTransposeEngraver =
     ((pre-process-music engraver)
      (if key-music
          (let ()
-           (ly:message "~a" (ly:context-property context 'currentBarNumber))
            (cond-transp context key-music)
            (let* ((full-alts (ly:music-property key-music 'pitch-alist))
-                  (alts (filter (lambda (alt) (not (equal? 0 (cdr alt)))) full-alts)))
-             (ly:context-set-property! context 'keyAlterations alts)
+                  (alts (filter (lambda (alt) (not (equal? 0 (cdr alt)))) full-alts))
+                  (proper-alts (order-keysig context alts)))
+             (ly:context-set-property! context 'keyAlterations proper-alts)
              (ly:context-set-property! context 'tonic (ly:music-property key-music 'tonic))))))
     
     (listeners
