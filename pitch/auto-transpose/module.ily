@@ -31,26 +31,22 @@
    symbol)
 % add context properties descriptions
 %   transpose-direction
-#(translator-property-description 'transpose-direction boolean-or-symbol? "Auto-transpose setting. Valid options are 'concert-to-pitch (default – concert pitch input, transposed output), 'pitch-to-concert (transposed input, concert pitch output), and #f to disable autotranspose.")
-
-#(define (order-keysig context pitch-alist)
-   (let ((order (ly:context-property context 'keyAlterationOrder)))
-     (filter
-      (lambda (alt)
-        (any (lambda (el)
-               (equal? el alt))
-          pitch-alist))
-      order)))
+#(translator-property-description 
+  'transpose-direction boolean-or-symbol? 
+  "Auto-transpose setting. Valid options are 'concert-to-pitch (default – concert pitch input, transposed output), 'pitch-to-concert (transposed input, concert pitch output), and #f to disable autotranspose.")
 
 #(define (which-transp context transp)
    (let ((transpose-direction (ly:context-property context 'transpose-direction 'concert-to-pitch)))
      (cond
       ((and (equal? transpose-direction 'concert-to-pitch) (ly:pitch? transp))
-       (ly:pitch-diff (ly:make-pitch 0 0 0) transp))
+       (ly:pitch-diff (ly:make-pitch 0 0 0) transp)) ; invert around middle c' for opposite semantics of Lilypond's default
       ((and (equal? transpose-direction 'pitch-to-concert) (ly:pitch? transp))
-       transp)
+       transp) ; keep transposition as-is for semantics that match Lilypond's default
       (else #f))))
 
+%  To Do: currently cond-transp is used for keysigs, but there are builtin scheme functions to transpose pitches and keysig alists.
+%  Maybe using them could avoid the need for complete-keysig and order-keysig helpers?
+%  Also cond-transp should return the transposed music expression.
 #(define (cond-transp context music)
    (let ((transp (ly:context-property context 'instrumentTransposition))
          (base (ly:make-pitch 0 0 0)))
@@ -80,6 +76,15 @@
          (update (lambda (el sig) (assoc-set! sig (car el) (cdr el)))))
      (fold update (copy-tree cmaj) alterations)))
 
+#(define (order-keysig context pitch-alist)
+   (let ((order (ly:context-property context 'keyAlterationOrder)))
+     (filter
+      (lambda (alt)
+        (any (lambda (el)
+               (equal? el alt))
+          pitch-alist))
+      order)))
+
 autoTransposeEngraver = 
 #(lambda (context)
    (let ((lasttransp (ly:context-property context 'instrumentTransposition))
@@ -106,7 +111,7 @@ autoTransposeEngraver =
                        (ly:context-property context 'currentBarNumber))
                      (ly:event-set-property! key-event 'music-cause new-key)
                      (ly:event-set-property! key-event 'pitch-alist 
-                       (order-keysig context (ly:event-property key-event 'pitch-alist)))
+                       (order-keysig context (ly:event-property key-event 'pitch-alist))) ; Fixing the order might not be needed here
                      (ly:broadcast (ly:context-event-source context) key-event)
                      )))
              (set! lasttransp transp))))
@@ -149,8 +154,15 @@ autoTransposeEngraver =
            (let ((key-music (ly:event-property event-cache 'music-cause)))
              (cond-transp context key-music)
              (let* ((full-alts (ly:music-property key-music 'pitch-alist))
-                    (alts (filter (lambda (alt) (not (equal? 0 (cdr alt)))) full-alts))
+                    ; discard all the naturals
+                    (alts (filter
+                           (lambda (alt) (not (equal? 0 (cdr alt))))
+                           full-alts))
+                    ; fix the order of alterations
                     (proper-alts (order-keysig context alts)))
+               ; Key_engraver reads from context properties NOT from the event itself when printing a keysig
+               ; So we can wait for all events to be heard, then fix the keysig to reflect the transposition
+               ; even if the key change was heard before the transposition change.
                (ly:context-set-property! context 'keyAlterations proper-alts)
                (ly:context-set-property! context 'tonic (ly:music-property key-music 'tonic)))))
        )

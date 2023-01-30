@@ -22,10 +22,9 @@
     \transposition ef
     \key f \major
     r4 c2. |
-    % Key change immediately before a transposition change triggers a warning and output is incorrect
+    % Key change immediately before a transposition change outputs correctly, but triggers a warning
     \key bf \major
     \transposition f
-    \textMark "Incorrect key!"
     r4 c2. |
   }
   \layout {}
