@@ -24,7 +24,7 @@
     r4 c2. |
     % Key change immediately before a transposition change triggers a warning and output is incorrect
     \key bf \major
-    \transposition c'
+    \transposition f
     \textMark "Incorrect key!"
     r4 c2. |
   }

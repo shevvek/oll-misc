@@ -1,4 +1,4 @@
-\version "2.20.0"
+\version "2.24.0"
 
 \include "english.ly"
 
@@ -16,6 +16,7 @@ alto-sax = {
 }
 
 global = {
+  \key c \major
   s1
   \key f \major
   s1
@@ -25,7 +26,7 @@ music = \relative c' {
   \tenor-sax
   r4 c2.
   \alto-sax
-  r4 c2.
+  r4 ef2.
 }
 
 \markup \column { 
@@ -53,6 +54,7 @@ music = \relative c' {
 }
 
 global = {
+  \key c \major
   s1
   \key f \major
   s1
@@ -63,7 +65,7 @@ music = \relative c' {
   r4 c2.
   \alto-sax
   \key f \major
-  r4 c2.
+  r4 ef2.
 }
 
 \markup \column {

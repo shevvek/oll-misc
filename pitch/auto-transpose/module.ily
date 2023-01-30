@@ -1,4 +1,4 @@
-\version "2.19.7"
+\version "2.24.0"
 
 \header {
   snippet-title = "auto-transpose"
@@ -72,7 +72,7 @@
      ))
 
 #(define (complete-keysig alterations)
-   (let ((cmaj '((0 . 0) (1 . 0) (2 . 0) (3 . 0) (4 . 0) (5 . 0) (6 . 0)))
+   (let ((cmaj '((0 . 0) (4 . 0) (1 . 0) (5 . 0) (2 . 0) (6 . 0) (3 . 0)))
          (update (lambda (el sig) (assoc-set! sig (car el) (cdr el)))))
      (fold update (copy-tree cmaj) alterations)))
 
@@ -122,24 +122,37 @@ autoKeysigEngraver =
 % engraver to automatically transpose music
 autoTransposeEngraver =
 #(lambda (context)
+   (let ((key-music #f))
    ; create engraver
    (make-engraver
+    ((pre-process-music engraver)
+     (if key-music
+         (let ()
+           (ly:message "~a" (ly:context-property context 'currentBarNumber))
+           (cond-transp context key-music)
+           (let* ((full-alts (ly:music-property key-music 'pitch-alist))
+                  (alts (filter (lambda (alt) (not (equal? 0 (cdr alt)))) full-alts)))
+             (ly:context-set-property! context 'keyAlterations alts)
+             (ly:context-set-property! context 'tonic (ly:music-property key-music 'tonic))))))
+    
     (listeners
      ; transpose note-event
      ((note-event engraver event)
       (cond-transp context (ly:event-property event 'music-cause)))
      ; transpose key-signature
-     ((key-change-event engraver event)
-      (cond-transp context (ly:event-property event 'music-cause)))
+     ((key-change-event engraver event #:once)
+      (set! key-music (ly:event-property event 'music-cause)))
      )
-    )
-   )
+    
+    ((stop-translation-timestep engraver)
+     (set! key-music #f))
+   )))
 
 autoTranspose = \with {
   % we have to ensure, the key-engraver acts after transposition is done
   \remove "Key_engraver"
-  \consists \autoTransposeEngraver
   \consists \autoKeysigEngraver
+  \consists \autoTransposeEngraver
   \consists "Key_engraver"
   % if music and print are equal, do nothing
   % else transpose according to transp (up or down)
