@@ -174,10 +174,7 @@ autoTransposeEngraver =
       )))
 
 autoTranspose = \with {
-  % we have to ensure, the key-engraver acts after transposition is done
-  \remove "Key_engraver"
   \consists \autoTransposeEngraver
-  \consists "Key_engraver"
   transposeDirection = #'concert-to-pitch
   % TODO: if music is given in instrument-pitch, but shall be printed in concert-pitch,
   %   midi pitch is false - instrumentTransposition should be "turned off" for midi(?)
