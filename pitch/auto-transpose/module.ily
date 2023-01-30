@@ -32,11 +32,11 @@
 % add context properties descriptions
 %   transpose-direction
 #(translator-property-description 
-  'transpose-direction boolean-or-symbol? 
+  'transposeDirection boolean-or-symbol? 
   "Auto-transpose setting. Valid options are 'concert-to-pitch (default – concert pitch input, transposed output), 'pitch-to-concert (transposed input, concert pitch output), and #f to disable autotranspose.")
 
 #(define (which-transp context transp)
-   (let ((transpose-direction (ly:context-property context 'transpose-direction 'concert-to-pitch)))
+   (let ((transpose-direction (ly:context-property context 'transposeDirection 'concert-to-pitch)))
      (cond
       ((and (equal? transpose-direction 'concert-to-pitch) (ly:pitch? transp))
        (ly:pitch-diff (ly:make-pitch 0 0 0) transp)) ; invert around middle c' for opposite semantics of Lilypond's default
@@ -178,7 +178,7 @@ autoTranspose = \with {
   \remove "Key_engraver"
   \consists \autoTransposeEngraver
   \consists "Key_engraver"
-  transpose-direction = #'concert-to-pitch
+  transposeDirection = #'concert-to-pitch
   % TODO: if music is given in instrument-pitch, but shall be printed in concert-pitch,
   %   midi pitch is false - instrumentTransposition should be "turned off" for midi(?)
 }
