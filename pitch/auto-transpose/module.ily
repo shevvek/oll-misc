@@ -30,10 +30,8 @@
    (set! all-translation-properties (cons symbol all-translation-properties))
    symbol)
 % add context properties descriptions
-%   music-concert-pitch
-%   print-concert-pitch
-#(translator-property-description 'music-concert-pitch boolean? "music is in concert pitch")
-#(translator-property-description 'print-concert-pitch boolean? "print it in concert pitch")
+%   transpose-direction
+#(translator-property-description 'transpose-direction boolean-or-symbol? "Auto-transpose setting. Valid options are 'concert-to-pitch (default – concert pitch input, transposed output), 'pitch-to-concert (transposed input, concert pitch output), and #f to disable autotranspose.")
 
 #(define (order-keysig context pitch-alist)
    (let ((order (ly:context-property context 'keyAlterationOrder)))
@@ -45,14 +43,11 @@
       order)))
 
 #(define (which-transp context transp)
-   (let ((base (ly:make-pitch 0 0 0)) ; pitch c'
-          (mcp (ly:context-property context 'music-concert-pitch)) ; music is in concert-pitch t/f
-          (pcp (ly:context-property context 'print-concert-pitch)) ; print it in concert-pitch t/f
-          )
+   (let ((transpose-direction (ly:context-property context 'transpose-direction 'concert-to-pitch)))
      (cond
-      ((and mcp (not pcp) (ly:pitch? transp))
-       (ly:pitch-diff base transp))
-      ((and (not mcp) pcp (ly:pitch? transp))
+      ((and (equal? transpose-direction 'concert-to-pitch) (ly:pitch? transp))
+       (ly:pitch-diff (ly:make-pitch 0 0 0) transp))
+      ((and (equal? transpose-direction 'pitch-to-concert) (ly:pitch? transp))
        transp)
       (else #f))))
 
@@ -81,7 +76,7 @@
      ))
 
 #(define (complete-keysig alterations)
-   (let ((cmaj '((0 . 0) (4 . 0) (1 . 0) (5 . 0) (2 . 0) (6 . 0) (3 . 0)))
+   (let ((cmaj '((0 . 0) (1 . 0) (2 . 0) (3 . 0) (4 . 0) (5 . 0) (6 . 0)))
          (update (lambda (el sig) (assoc-set! sig (car el) (cdr el)))))
      (fold update (copy-tree cmaj) alterations)))
 
@@ -171,10 +166,7 @@ autoTranspose = \with {
   \remove "Key_engraver"
   \consists \autoTransposeEngraver
   \consists "Key_engraver"
-  % if music and print are equal, do nothing
-  % else transpose according to transp (up or down)
-  music-concert-pitch = ##t
-  print-concert-pitch = ##f
+  transpose-direction = #'concert-to-pitch
   % TODO: if music is given in instrument-pitch, but shall be printed in concert-pitch,
   %   midi pitch is false - instrumentTransposition should be "turned off" for midi(?)
 }
