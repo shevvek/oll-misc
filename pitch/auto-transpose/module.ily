@@ -5,8 +5,8 @@
   snippet-author = "Jan-Peter Voigt, Saul James Tobin"
   snippet-description = \markup {
     \wordwrap {
-      This engraver transposes music accordingly to 'instrumentTransposition'
-      and 'music-concert-pitch' plus 'print-concert-pitch'.
+      This engraver transposes music according to 'instrumentTransposition'
+      and 'transpositionDirection' and prints key signatures whenever the transposition changes.
       The example is working from concert-pitch to instrument-pitch, but MIDI is not right in the other direction. (TODO)
     }
   }
@@ -140,7 +140,7 @@ autoTransposeEngraver =
             (if (not (ly:event-property event 'auto-transpose #f))
                 (set! event-cache event)))
         
-        ; if transposition changed, reset lasttrasnsp 
+        ; if transposition changed, reset lasttransp 
         ; (to suppress auto keysig when an explicit key change is already present)
         (let ((transp (ly:context-property context 'instrumentTransposition)))
          (if (not (equal? transp lasttransp))
